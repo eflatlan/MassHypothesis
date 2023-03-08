@@ -105,6 +105,27 @@ const double mass_Pion_sq = mass_Pion*mass_Pion, mass_Kaon_sq = mass_Kaon*mass_K
 
 std::array<double, 3> calcCherenkovHyp(double p, double n);
 
+TH2F* tHistMass = new TH2F("test", "test; Momentum; #Theta_c", 5000, 0., 5., 800, 0., 0.8);
+TCanvas *tCkov = new TCanvas("ckov","ckov",800,800);  
+void testHyp()
+{  
+
+//TH2F *hClusterMap = new TH2F("Cluster Map", "Cluster Map; x [cm]; y [cm]",1000,-10.,10.,1000,-10.,10.);
+
+  for(double p = 0.; p < 5; p+= 0.001)
+  { 
+    Printf("P =  %f", p);
+    auto t = calcCherenkovHyp(p, 1.289);
+    for(auto& tt:t){
+      if(!TMath::IsNaN(tt)){tHistMass->Fill(p, tt);}
+    }
+  }
+  tCkov->cd();
+  tHistMass->Draw();
+  //calcCherenkovHyp(1.5, 1.289);
+
+}
+
 
 
 void backgroundStudy(Int_t NumberOfEvents, Int_t NumberOfClusters, double Hwidth, double occupancy = 0.03)   
@@ -1271,6 +1292,9 @@ std::array<double, 3> calcCherenkovHyp(double p, double n)
   const auto ckovAnglePion = TMath::ACos(cos_ckov_Pion); 
   const auto ckovAngleKaon = TMath::ACos(cos_ckov_Kaon); 
   const auto ckovAngleProton = TMath::ACos(cos_ckov_Proton); 
+
+  Printf("Pion %.3f Kaon %.3f Proton %.3f", ckovAnglePion, ckovAngleKaon, ckovAngleProton);
+
   return {ckovAnglePion, ckovAngleKaon, ckovAngleProton};
 }
 
