@@ -103,7 +103,14 @@ const double mass_Pion = 0.1396, mass_Kaon = 0.4937, mass_Proton = 0.938; // mas
 
 const double mass_Pion_sq = mass_Pion*mass_Pion, mass_Kaon_sq = mass_Kaon*mass_Kaon,  mass_Proton_sq = mass_Proton*mass_Proton;
 
+
+TRandom2* rndInt = new TRandom2(1); 
+
+
 std::array<double, 3> calcCherenkovHyp(double p, double n);
+
+std::array<double, 3> masses = {mass_Pion, mass_Kaon, mass_Proton};
+double randomMass(); double randomEnergy();
 
 TH2F* tHistMass = new TH2F("test", "test; Momentum (GeV/c); Cherenkov Angle, #theta_{ch} (rad)", 5000, 0., 5., 800, 0., 0.8);
 TCanvas *tCkov = new TCanvas("ckov","ckov",800,800);  
@@ -111,11 +118,15 @@ void testHyp()
 {  
 
 //TH2F *hClusterMap = new TH2F("Cluster Map", "Cluster Map; x [cm]; y [cm]",1000,-10.,10.,1000,-10.,10.);
-
+  rndInt->SetSeed(0);
   for(double p = 0.; p < 5; p+= 0.001)
   { 
-    Printf("P =  %f", p);
-    auto t = calcCherenkovHyp(p, 1.289);
+
+    
+    auto photonEnergy = randomEnergy();
+    auto n = GetFreonIndexOfRefraction(photonEnergy);
+    Printf("P =  %f  || n = %f", p, n);
+    auto t = calcCherenkovHyp(p, n);
     for(auto& tt:t){
       if(!TMath::IsNaN(tt)){tHistMass->Fill(p, tt);}
     }
@@ -132,7 +143,7 @@ void backgroundStudy(Int_t NumberOfEvents, Int_t NumberOfClusters, double Hwidth
 {
     gStyle->SetOptStat("ei");
 
-  TRandom2* rndP = new TRandom2(1);
+  TRandom2* rndP = new TRandom2(1); 
   rndP->SetSeed(0);
   const auto numberOfCkovPhotons = rndP->Poisson(13);
   photonCandidates.clear();
@@ -1296,6 +1307,28 @@ std::array<double, 3> calcCherenkovHyp(double p, double n)
   Printf("Pion %.3f Kaon %.3f Proton %.3f", ckovAnglePion, ckovAngleKaon, ckovAngleProton);
 
   return {ckovAnglePion, ckovAngleKaon, ckovAngleProton};
+}
+
+static constexpr double arrWaveLenDefault[30] = {
+  162, 164, 166, 168, 170, 172, 174, 176, 178, 180,
+  182, 184, 186, 188, 190, 192, 194, 196, 198, 200,
+  202, 204, 206, 208, 210, 212, 214, 216, 218, 220};
+static constexpr double nm2eV = 1239.842609;
+
+double randomMass() 
+{  
+  auto index = static_cast<int>(rndInt->Integer(3));
+  Printf("randomMass indes = %d", index);
+  return masses[index];
+}
+
+double randomEnergy()
+{
+  
+  auto index = static_cast<int>(rndInt->Integer(30));
+  Printf("rEn indes = %d", index);
+  double photonEnergy = static_cast<double>(nm2eV/arrWaveLenDefault[index]);
+  return photonEnergy;
 }
 
 void setStyle()
