@@ -105,7 +105,7 @@ const double mass_Pion_sq = mass_Pion*mass_Pion, mass_Kaon_sq = mass_Kaon*mass_K
 
 std::array<double, 3> calcCherenkovHyp(double p, double n);
 
-TH2F* tHistMass = new TH2F("test", "test; Momentum; #Theta_c", 5000, 0., 5., 800, 0., 0.8);
+TH2F* tHistMass = new TH2F("test", "test; Momentum (GeV/c); Cherenkov Angle, #theta_{ch} (rad)", 5000, 0., 5., 800, 0., 0.8);
 TCanvas *tCkov = new TCanvas("ckov","ckov",800,800);  
 void testHyp()
 {  
