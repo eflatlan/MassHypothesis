@@ -106,11 +106,17 @@ const double mass_Pion_sq = mass_Pion*mass_Pion, mass_Kaon_sq = mass_Kaon*mass_K
 
 TRandom2* rndInt = new TRandom2(1); 
 
-
+double calcCkovFromMass(double p, double n, double m);
 std::array<double, 3> calcCherenkovHyp(double p, double n);
 
 std::array<double, 3> masses = {mass_Pion, mass_Kaon, mass_Proton};
 double randomMass(); double randomEnergy();
+
+
+double randomMomentum()
+{
+  return 1+4*rndInt->Gaus(0.5, 0.25);
+}
 
 TH2F* tHistMass = new TH2F("test", "test; Momentum (GeV/c); Cherenkov Angle, #theta_{ch} (rad)", 5000, 0., 5., 800, 0., 0.8);
 TCanvas *tCkov = new TCanvas("ckov","ckov",800,800);  
@@ -126,9 +132,9 @@ void testHyp()
     auto photonEnergy = randomEnergy();
     auto n = GetFreonIndexOfRefraction(photonEnergy);
     Printf("P =  %f  || n = %f", p, n);
-    auto t = calcCherenkovHyp(p, n);
-    for(auto& tt:t){
-      if(!TMath::IsNaN(tt)){tHistMass->Fill(p, tt);}
+    auto ckovAngles = calcCherenkovHyp(p, n);
+    for(auto& ckovAngle:ckovAngles){
+      if(!TMath::IsNaN(tt)){tHistMass->Fill(p, ckovAngle);}
     }
   }
   tCkov->cd();
@@ -137,7 +143,42 @@ void testHyp()
 
 }
 
+std::array<double, 3> ckovMassHyp;
+const double ckovConstraintWhidth = 0.015; // 15 mrad per side for ckovangle constraint 
+					   // from mass hypotheses
 
+
+double ckovActual = 0.;
+double massActual = 0.;
+double pActual = 0.;
+
+void testRandomMomentum()
+{  
+
+//TH2F *hClusterMap = new TH2F("Cluster Map", "Cluster Map; x [cm]; y [cm]",1000,-10.,10.,1000,-10.,10.);
+  rndInt->SetSeed(0);
+
+
+  // create random momentum (model has this information):
+  momentum = randomMomentum();
+
+
+  // the actual mass (model is blind to this):
+  mass = randomMass();
+
+  // "random" refractive index (known to model)
+  auto photonEnergy = randomEnergy();
+  auto n = GetFreonIndexOfRefraction(photonEnergy);
+  
+  // create the ckovAngles from the mass hypotheses:
+  auto ckovAngles = calcCherenkovHyp(p, n);
+  ckovMassHyp = ckovAngles;
+  
+
+  ckovActual = calcCkovFromMass(mass);
+  //calcCherenkovHyp(1.5, 1.289);
+
+}
 
 void backgroundStudy(Int_t NumberOfEvents, Int_t NumberOfClusters, double Hwidth, double occupancy = 0.03)   
 {
@@ -1308,6 +1349,20 @@ std::array<double, 3> calcCherenkovHyp(double p, double n)
 
   return {ckovAnglePion, ckovAngleKaon, ckovAngleProton};
 }
+
+
+
+double calcCkovFromMass(double p, double n, double m)
+{
+  const double p_sq = p*p;
+  const double cos_ckov_denom = p*refIndexFreon;
+  const auto cos_ckov = TMath::Sqrt(p_sq + m*m)/(cos_ckov_denom);
+
+  const auto ckovAngle = TMath::ACos(cos_ckov);
+
+  return ckovAngle;
+}
+
 
 static constexpr double arrWaveLenDefault[30] = {
   162, 164, 166, 168, 170, 172, 174, 176, 178, 180,
