@@ -134,7 +134,7 @@ void testHyp()
     Printf("P =  %f  || n = %f", p, n);
     auto ckovAngles = calcCherenkovHyp(p, n);
     for(auto& ckovAngle:ckovAngles){
-      if(!TMath::IsNaN(tt)){tHistMass->Fill(p, ckovAngle);}
+      if(!TMath::IsNaN(ckovAngle)){tHistMass->Fill(p, ckovAngle);}
     }
   }
   tCkov->cd();
@@ -160,28 +160,32 @@ void testRandomMomentum()
 
 
   // create random momentum (model has this information):
-  momentum = randomMomentum();
-
+  auto momentum = randomMomentum();
+  pActual = momentum; 
 
   // the actual mass (model is blind to this):
-  mass = randomMass();
+  auto mass = randomMass();
+  massActual = mass;
 
   // "random" refractive index (known to model)
   auto photonEnergy = randomEnergy();
   auto n = GetFreonIndexOfRefraction(photonEnergy);
   
   // create the ckovAngles from the mass hypotheses:
-  auto ckovAngles = calcCherenkovHyp(p, n);
+  auto ckovAngles = calcCherenkovHyp(momentum, n);
   ckovMassHyp = ckovAngles;
   
 
-  ckovActual = calcCkovFromMass(mass);
+  ckovActual = calcCkovFromMass(momentum, n, mass);
   //calcCherenkovHyp(1.5, 1.289);
 
 }
 
 void backgroundStudy(Int_t NumberOfEvents, Int_t NumberOfClusters, double Hwidth, double occupancy = 0.03)   
 {
+
+
+  testRandomMomentum();
     gStyle->SetOptStat("ei");
 
   TRandom2* rndP = new TRandom2(1); 
@@ -483,9 +487,13 @@ TH2F *hSignalAndNoiseMap2 = new TH2F("Signal and Noise 2", "Signal and Noise 2; 
  TRandom2* rnd = new TRandom2(1);
  rnd->SetSeed(0);
 
- const double ckovAngleMean = 0.4+0.25*rnd->Gaus(0.5, 0.25);
- meanCherenkovAngle = ckovAngleMean;
- Printf("ckovAngleMean Generated %f", ckovAngleMean);
+ //const double ckovAngleMean = 0.4+0.25*rnd->Gaus(0.5, 0.25);
+ //ckovActual pActual massActual
+  
+ //ckovMassHyp should apply constraints!
+ meanCherenkovAngle = ckovActual;
+ auto ckovAngleMean = meanCherenkovAngle;
+ Printf("ckovAngleMean Generated %f", ckovActual);
 
 
  for(Int_t i=0; i < numberOfCkovPhotons; i++) {
@@ -832,8 +840,18 @@ double getRadiusFromCkov(double ckovAngle)
 double /*std::array<TH1D*, 3>*/ houghResponse(std::vector<double>& photonCandidates, double fWindowWidth)
 {
 
+  // ckovMassHyp applies constraints!!
+  
+  auto l0 = ckovMassHyp[0] - ckovConstraintWhidth;
+  auto u0 = ckovMassHyp[0] + ckovConstraintWhidth;
+  auto l1 = ckovMassHyp[1] - ckovConstraintWhidth;
+  auto u1 = ckovMassHyp[1] + ckovConstraintWhidth;
+  auto l2 = ckovMassHyp[2] - ckovConstraintWhidth;
+  auto u2 = ckovMassHyp[2] + ckovConstraintWhidth;
+  Printf("Regions %f %f || %f %f || %f %f  ", l0, u0, l1, u1, l2, u2);
 
-
+  
+  
   /* ef : changed from this:
   // TH1D *resultw = new TH1D("resultw","resultw"       ,nChannels,0,kThetaMax);
   // TH1D *phots   = new TH1D("Rphot"  ,"phots"         ,nChannels,0,kThetaMax);
@@ -852,6 +870,10 @@ double /*std::array<TH1D*, 3>*/ houghResponse(std::vector<double>& photonCandida
   for (const auto& angle : photonCandidates) { // photon cadidates loop
 
     if (angle < 0 || angle > kThetaMax)
+      continue;
+
+    // ef : check if angle in ckovMassHyp:
+    if (angle < l2 || angle > u0)
       continue;
 
 
@@ -1287,8 +1309,8 @@ double getMaxInRange(TH1* th1, double mid, double width)
   int end = static_cast<int>(startBin+nBin2);
   for(int i = start; i < end; i++){
     auto binEnt = th1->GetBinContent(i);
-    if (binEnt > max) max = binEnt;
-    Printf("ent i %d || val %f ", i, binEnt);
+    //if (binEnt > max) max = binEnt;
+    //Printf("ent i %d || val %f ", i, binEnt);
   }
   return max;
 }
