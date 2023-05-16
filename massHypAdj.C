@@ -37,13 +37,7 @@
 #include "Math/GenVector/RotationZ.h"
 
 
-/*
-struct DataInfo {
-    double momentum;
-    int typeOfParticle;
-    double refractiveIndex;
-    double pads[10][10];
-}; */
+
 
 
 double arrW[750]= {0.};
@@ -171,6 +165,8 @@ double ckovActual = 0.;
 double massActual = 0.;
 double pActual = 0.;
 
+void saveDataInst();
+
 void testRandomMomentum()
 {  
 
@@ -197,13 +193,17 @@ void testRandomMomentum()
 
   // here the ckov is populated, should be adjusted to get random values:
   ckovActual = calcCkovFromMass(momentum, n, mass); 
-
+  
 
   //  populate the map with the noise and pseudo-randomly populated photons (radially [-pi..pi] and normally distributed [mu = ckovAngle, sigma = ang-res])
   auto map = backgroundStudy(ckovActual, 0.01);
 
 
+  Printf("CkovAngle %f Mass %f RefIndex %f Momentum %f", ckovActual, mass, n, momentum);
 
+  saveDataInst();
+
+  map->SaveAs("map.root");
   // get the corresponding map with a given ckov angle and occupancy
 
   //calcCherenkovHyp(1.5, 1.289);
@@ -219,7 +219,7 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
   auto ckovAngle = ckovActual;
 
   Int_t NumberOfEvents = 1; Int_t NumberOfClusters = 13; double Hwidth = 15.;
-  testRandomMomentum();
+  //testRandomMomentum();
   gStyle->SetOptStat("ei");
 
   TRandom2* rndP = new TRandom2(1); 
@@ -458,16 +458,7 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
    
 //    hThetaRing->Fill(RingThetaCherenkov); // gjor denne paa weighted m signal
         
- }// events loop
-
- // endre weight til fra Recon fra Giacomo sin branch
-
-//  TF1 *fBackGround = new TF1("fBackGround",BackgroundFunc,0,0.75,1);
-
-
-//  auto hThetaClone = static_cast<TH1*>(hTheta->Clone());
-//  hTheta->Fit(fBackGround,"RQ");
- //hTheta->Draw();
+ }
 
 
  // rndm value in ranfe 0.4, 0.7?
@@ -479,7 +470,7 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
  for(Int_t i=0; i < numberOfCkovPhotons; i++) {
    
 
-   double ckovAngle = rnd->Gaus(ckovAngle, 0.012);		    // random CkovAngle, with 0.012 std-dev
+   double ckovAnglePhot = rnd->Gaus(ckovAngle, 0.012);		    // random CkovAngle, with 0.012 std-dev
    
 
 
@@ -487,8 +478,8 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
 
 
 
-   double ringRadius = getRadiusFromCkov(ckovAngle); // R in photon-map
-   Printf("Cherenkov Photon : Angle = %f Radius = %f", ckovAngle, ringRadius);	
+   double ringRadius = getRadiusFromCkov(ckovAnglePhot); // R in photon-map
+   Printf("Cherenkov Photon : Angle = %f Radius = %f", ckovAnglePhot, ringRadius);	
 
 
 
@@ -505,7 +496,7 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
    hSignalAndNoiseMap->Fill(x,y);
 
    // add Actual Cherenkov Photon to Candidates
-   photonCandidates.emplace_back(ckovAngle);
+   photonCandidates.emplace_back(ckovAnglePhot);
 
   } 
 
@@ -515,34 +506,13 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
  
  auto ckovAnglePredicted = houghResponse(photonCandidates,  Hwidth);
 
- //TCanvas *signalNoiseCanvas = new TCanvas("Signal and Noise Hit Map","Signal and Noise Hit Map",800,800);  
- //signalNoiseCanvas->Divide(2,1);
- //signalNoiseCanvas->cd(1);
- //signalMap->Draw();
- //signalNoiseCanvas->cd(2);
- //noiseMap->Draw();
-
-
-
-//  TCanvas *signalPNoiseCanvas = new TCanvas("Signal+Noise Hit Map","Signal+Noise Hit Map",800,800);
-//  signalPNoiseCanvas->Divide(2,1);
-//  signalPNoiseCanvas->cd(1);
-//  setStyleInd(noiseMap);
-//  noiseMap->SetMarkerStyle(kBlack);
-//  noiseMap->SetMarkerStyle(2);
-//  noiseMap->SetMarkerColor(kRed);
-//  noiseMap->SetTitle(Form("Photon  Hit Map"));
-
-
-//  signalMap->SetMarkerStyle(3);
-//  signalMap->SetMarkerColor(kBlue);
 
 
 
  for(double d = 0.1; d < 0.4; d+= 0.05){
    double rmin = getRadiusFromCkov(d+0.001*Hwidth/2); // R in photon-map
    double rmax = getRadiusFromCkov(d-0.001*Hwidth/2); // R in photon-map
-   Printf("d%f Rmin%f, Rmax%f", d, rmin, rmax);
+   //Printf("d%f Rmin%f, Rmax%f", d, rmin, rmax);
  }
 
 
@@ -1074,8 +1044,8 @@ TH1* getMaxInRange(TH1* th1, double& up, double mid, double width)
     auto binEnt = th1->GetBinContent(i);
     auto binent = arrW[i-1];
     thOut->SetBinContent(binent, i);
-    if (binEnt > max) max = binent;
-    Printf("ent i %d || val %f || val2 %f", i, binEnt, binent);
+    //if (binEnt > max) max = binent;
+    //Printf("ent i %d || val %f || val2 %f", i, binEnt, binent);
 
   }
   thOut->GetXaxis()->SetRangeUser(0., r);
