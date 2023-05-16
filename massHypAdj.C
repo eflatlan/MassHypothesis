@@ -40,6 +40,15 @@
 #include "Math/GenVector/RotationZ.h"
 
 
+
+static constexpr double arrWaveLenDefault[30] = {
+  162, 164, 166, 168, 170, 172, 174, 176, 178, 180,
+  182, 184, 186, 188, 190, 192, 194, 196, 198, 200,
+  202, 204, 206, 208, 210, 212, 214, 216, 218, 220};
+static constexpr double nm2eV = 1239.842609;
+
+
+
 struct ParticleInfo {
     double momentum;
     double mass;
@@ -60,6 +69,10 @@ using namespace o2::hmpid;
 void setStyleInd(TH2* th1f, double ratio = 1.2);
 void setStyleInd(TH1* th1f, double ratio = 1.2);
 
+
+
+const double mass_Pion = 0.1396, mass_Kaon = 0.4937, mass_Proton = 0.938; // masses in
+std::array<double, 3> masses = {mass_Pion, mass_Kaon, mass_Proton};
 // get Ring-radius from Cherenkov-angle
 double getRadiusFromCkov(double ckovAngle);
 double calcRingGeom(double ckovAng, int level);
@@ -111,9 +124,7 @@ double getMaxInRange(TH1* th1, int start, int width);
 double getMaxInRange(TH1* th1, double mid, double width);
 
 
-// mass_Pion_sq mass_Kaon_sq mass_Proton_sq
-const double mass_Pion = 0.1396, mass_Kaon = 0.4937, mass_Proton = 0.938; // masses in GeV/c^2
-
+// mass_Pion_sq mass_Kaon_sq mass_Proton_sq GeV/c^2
 const double mass_Pion_sq = mass_Pion*mass_Pion, mass_Kaon_sq = mass_Kaon*mass_Kaon,  mass_Proton_sq = mass_Proton*mass_Proton;
 
 
@@ -122,7 +133,7 @@ TRandom2* rndInt = new TRandom2(1);
 double calcCkovFromMass(double p, double n, double m);
 std::array<double, 3> calcCherenkovHyp(double p, double n);
 
-std::array<double, 3> masses = {mass_Pion, mass_Kaon, mass_Proton};
+
 double randomMass(); double randomEnergy();
 
 
@@ -178,44 +189,45 @@ double pActual = 0.;
 void saveDataInst();
 std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& particleVector);
 
-void testRandomMomentum()
+void testRandomMomentum(int numObjects = 10)
 {  
 
 
 // create random mass, energy (and from this ref-index) and momentum :
 
+
+  
   std::vector<RandomValues> randomObjects(numObjects);
   rndInt->SetSeed(0);
 
   std::vector<ParticleInfo> particleVector;
 
-
+  int i = 0;
   for(const auto& randomValue : randomObjects){
 
-     // get the mass from the index
-     auto& index = randomValue.mass;
-     auto& mass = masses[index]
+
 
      // get cherenkov angle from mass momentum and refindex
-     auto& ckov = calcCkovFromMass(randomValue.momentum, randomValue.refractiveIndex, mass); //  calcCkovFromMass(momentum, n, mass)
+     const auto& ckov = calcCkovFromMass(randomValue.momentum, randomValue.refractiveIndex, randomValue.mass); //  calcCkovFromMass(momentum, n, mass)
 
      // get the map with a given occupancy and ckov angle calculated 
-     auto& map = backgroundStudy(ckov, 0.01);
-     Printf("CkovAngle %f Mass %f RefIndex %f Momentum %f", ckov, mass, randomValue.refractiveIndex, refractiveIndex.momentum);   
+     const auto& map = backgroundStudy(ckov, 0.01);
+     Printf("CkovAngle %f Mass %f RefIndex %f Momentum %f", ckov, randomValue.mass, randomValue.refractiveIndex, randomValue.momentum);   
 
      // make sure the momentum is valid for the given particle (e.g., no - in the square-root in calcCkovFromMass and acos [-1..1])
     if (ckov == 0) {
       continue;
     }
-
+     i++;
      ParticleInfo particle;
      particle.momentum = randomValue.momentum;
-     particle.mass = mass;
+     particle.mass = randomValue.mass;
      particle.energy = randomValue.energy;
      particle.refractiveIndex = randomValue.refractiveIndex;
      particle.ckov = ckov;
-     particle.map = &map;  
+     particle.map = map;  
      particleVector.emplace_back(particle);
+    map->SaveAs(Form("map%d.root", i));
   }
 
   // save object
@@ -329,8 +341,8 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
       Ycen[n1] = 60*(1 - 2*gRandom->Rndm(n1));
 
       //noiseMap->Fill(Xcen[n1], Ycen[n1]);
-      hSignalAndNoiseMap->Fill);
-      mapArray[Xcen[n1]+20][Ycen[n1]+20] = 1;
+      hSignalAndNoiseMap->Fill(Xcen[n1], Ycen[n1]);
+      //mapArray[Xcen[n1]+20][Ycen[n1]+20] = 1;
       //hSignalAndNoiseMap2->Fill(Xcen[n1], Ycen[n1]);
 
 
@@ -378,7 +390,7 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
    // populating the pad
    hSignalAndNoiseMap->Fill(x,y);
    // 
-   mapArray[Xcen[n1]+20][Ycen[n1]+20] = 1;
+   //mapArray[Xcen[n1]+20][Ycen[n1]+20] = 1;
 
    // add Actual Cherenkov Photon to Candidates
    photonCandidates.emplace_back(ckovAnglePhot);
@@ -387,9 +399,9 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
 
 
 	
- Printf("Hough Window size = %f", Hwidth);
+ //Printf("Hough Window size = %f", Hwidth);
  
- auto ckovAnglePredicted = houghResponse(photonCandidates,  Hwidth);
+ /*auto ckovAnglePredicted = houghResponse(photonCandidates,  Hwidth);
 
 
 
@@ -398,10 +410,10 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
    double rmin = getRadiusFromCkov(d+0.001*Hwidth/2); // R in photon-map
    double rmax = getRadiusFromCkov(d-0.001*Hwidth/2); // R in photon-map
    //Printf("d%f Rmin%f, Rmax%f", d, rmin, rmax);
- }
+ }*/ 
 
- double rMax = getRadiusFromCkov(ckovTrackOut+0.001*Hwidth/2); // R in photon-map
- double rMin = getRadiusFromCkov(ckovTrackOut-0.001*Hwidth/2); // R in photon-map
+ // double rMax = getRadiusFromCkov(ckovTrackOut+0.001*Hwidth/2); // R in photon-map
+ // double rMin = getRadiusFromCkov(ckovTrackOut-0.001*Hwidth/2); // R in photon-map
  
  /*TFile *outFile = TFile::Open("background.root","RECREATE");
  
@@ -822,11 +834,7 @@ double calcCkovFromMass(double p, double n, double m)
 }
 
 
-static constexpr double arrWaveLenDefault[30] = {
-  162, 164, 166, 168, 170, 172, 174, 176, 178, 180,
-  182, 184, 186, 188, 190, 192, 194, 196, 198, 200,
-  202, 204, 206, 208, 210, 212, 214, 216, 218, 220};
-static constexpr double nm2eV = 1239.842609;
+
 
 double randomMass() 
 {  
@@ -863,7 +871,7 @@ void setStyle()
 
 void saveDataVector()
 {
-
+  std::vector<DataInfo> dataVector(100);  // Assuming you have a vector of Data
 
     // Fill the vector with some data
     // In a real case, you would likely fill this from your actual data source
@@ -922,9 +930,11 @@ std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& p
     double energy;
     float refractiveIndex;
     double ckov;
+    //TH2F* map; gives segmentation fault
 
     // Set the branch addresses for the TTree
     tree->Branch("momentum", &momentum);
+    //tree->Branch("map", &map);
     tree->Branch("mass", &mass);
     tree->Branch("energy", &energy);
     tree->Branch("refractiveIndex", &refractiveIndex);
@@ -937,7 +947,7 @@ std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& p
         energy = particle.energy;
         refractiveIndex = particle.refractiveIndex;
         ckov = particle.ckov;
-
+	//map = particle.map;
         tree->Fill();
     }
 
