@@ -19,8 +19,11 @@
 #include <TNtuple.h>
 #include <TFile.h>
 #include <TStyle.h>
-
+#include <TFile.h>
+#include <TTree.h>
+#include <memory>
 #include "SaveData.cpp"
+#include "RandomValues.cpp"
 
 #include <Math/Vector3D.h>
 #include <Math/Vector2D.h>
@@ -37,7 +40,14 @@
 #include "Math/GenVector/RotationZ.h"
 
 
-
+struct ParticleInfo {
+    double momentum;
+    double mass;
+    double energy;
+    float refractiveIndex;
+    double ckov;
+    TH2F* map;
+};
 
 
 double arrW[750]= {0.};
@@ -166,16 +176,58 @@ double massActual = 0.;
 double pActual = 0.;
 
 void saveDataInst();
+std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& particleVector);
 
 void testRandomMomentum()
 {  
 
- std::vector<RandomValues> randomObjects(numObjects);
 
-//TH2F *hClusterMap = new TH2F("Cluster Map", "Cluster Map; x [cm]; y [cm]",1000,-10.,10.,1000,-10.,10.);
+// create random mass, energy (and from this ref-index) and momentum :
+
+  std::vector<RandomValues> randomObjects(numObjects);
   rndInt->SetSeed(0);
 
+  std::vector<ParticleInfo> particleVector;
 
+
+  for(const auto& randomValue : randomObjects){
+
+     // get the mass from the index
+     auto& index = randomValue.mass;
+     auto& mass = masses[index]
+
+     // get cherenkov angle from mass momentum and refindex
+     auto& ckov = calcCkovFromMass(randomValue.momentum, randomValue.refractiveIndex, mass); //  calcCkovFromMass(momentum, n, mass)
+
+     // get the map with a given occupancy and ckov angle calculated 
+     auto& map = backgroundStudy(ckov, 0.01);
+     Printf("CkovAngle %f Mass %f RefIndex %f Momentum %f", ckov, mass, randomValue.refractiveIndex, refractiveIndex.momentum);   
+
+     // make sure the momentum is valid for the given particle (e.g., no - in the square-root in calcCkovFromMass and acos [-1..1])
+    if (ckov == 0) {
+      continue;
+    }
+
+     ParticleInfo particle;
+     particle.momentum = randomValue.momentum;
+     particle.mass = mass;
+     particle.energy = randomValue.energy;
+     particle.refractiveIndex = randomValue.refractiveIndex;
+     particle.ckov = ckov;
+     particle.map = &map;  
+     particleVector.emplace_back(particle);
+  }
+
+  // save object
+  
+  saveParticleInfoToROOT(particleVector);
+
+
+  //map->SaveAs("map.root");
+  //saveDataInst();
+  //TH2F *hClusterMap = new TH2F("Cluster Map", "Cluster Map; x [cm]; y [cm]",1000,-10.,10.,1000,-10.,10.);
+
+  /*
   // create random momentum (model has this information):
   auto momentum = randomMomentum();
   pActual = momentum; 
@@ -199,17 +251,10 @@ void testRandomMomentum()
 
   //  populate the map with the noise and pseudo-randomly populated photons (radially [-pi..pi] and normally distributed [mu = ckovAngle, sigma = ang-res])
   auto map = backgroundStudy(ckovActual, 0.01);
-
-
-  Printf("CkovAngle %f Mass %f RefIndex %f Momentum %f", ckovActual, mass, n, momentum);
-
-  saveDataInst();
-
-  map->SaveAs("map.root");
   // get the corresponding map with a given ckov angle and occupancy
 
   //calcCherenkovHyp(1.5, 1.289);
-
+  */ 
 }
 
 
@@ -247,7 +292,7 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
   setStyle();
 
   TH2F *hSignalAndNoiseMap = new TH2F("Signal and Noise ", "Signal and Noise ; x [cm]; y [cm]",1000,-25.,25.,1000,-25.,25.);
-
+  double mapArray[40][40]{};
    
   float Deltax = (RadiatorWidth+QuartzWindowWidth+CH4GapWidth-EmissionLenght)*TMath::Tan(ThetaP)*TMath::Cos(PhiP);
   float Deltay = (RadiatorWidth+QuartzWindowWidth+CH4GapWidth-EmissionLenght)*TMath::Tan(ThetaP)*TMath::Sin(PhiP);
@@ -284,7 +329,8 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
       Ycen[n1] = 60*(1 - 2*gRandom->Rndm(n1));
 
       //noiseMap->Fill(Xcen[n1], Ycen[n1]);
-      hSignalAndNoiseMap->Fill(Xcen[n1], Ycen[n1]);
+      hSignalAndNoiseMap->Fill);
+      mapArray[Xcen[n1]+20][Ycen[n1]+20] = 1;
       //hSignalAndNoiseMap2->Fill(Xcen[n1], Ycen[n1]);
 
 
@@ -331,6 +377,8 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
 
    // populating the pad
    hSignalAndNoiseMap->Fill(x,y);
+   // 
+   mapArray[Xcen[n1]+20][Ycen[n1]+20] = 1;
 
    // add Actual Cherenkov Photon to Candidates
    photonCandidates.emplace_back(ckovAnglePhot);
@@ -366,9 +414,9 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
  
 }
 //**********************************************************************************************************************************************************************************************************
-float GetFreonIndexOfRefraction(float x)
-  
+float GetFreonIndexOfRefraction(float photonEnergy)
 {
+  auto x = photonEnergy;
   float k = 1.177 + (0.0172)*x;
   return k;
 }
@@ -756,7 +804,17 @@ double calcCkovFromMass(double p, double n, double m)
 {
   const double p_sq = p*p;
   const double cos_ckov_denom = p*refIndexFreon;
+
+  // sanity check ;)
+  if(p_sq + m*m < 0){
+    return 0;
+  }
+
   const auto cos_ckov = TMath::Sqrt(p_sq + m*m)/(cos_ckov_denom);
+
+  // sanity check ;)
+  if(cos_ckov > 1 || cos_ckov < -1)
+    return 0;
 
   const auto ckovAngle = TMath::ACos(cos_ckov);
 
@@ -802,6 +860,30 @@ void setStyle()
   hTheta->SetLabelSize(phots->GetLabelSize("x"), "xy");
 }
 
+
+void saveDataVector()
+{
+
+
+    // Fill the vector with some data
+    // In a real case, you would likely fill this from your actual data source
+    for (int i = 0; i < 100; i++) {
+        dataVector[i].momentum = i * 0.5;  // some dummy values
+        dataVector[i].typeOfParticle = i % 3;
+        dataVector[i].refractiveIndex = i * 0.1;
+        for(int j=0; j<10; j++){
+            for(int k=0; k<10; k++){
+                dataVector[i].pads[j][k] = i+j+k; // some dummy values
+            }
+        }
+    }
+
+    DataSaver dataSaver("data.root");
+    dataSaver.fillData(dataVector);
+    dataSaver.save();
+}
+
+
 void saveDataInst()
 {
 
@@ -824,4 +906,44 @@ void saveDataInst()
     DataSaver dataSaver("data.root");
     dataSaver.fillData(dataVector);
     dataSaver.save();
+}
+
+
+std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& particleVector) {
+    // Create a smart pointer for the TFile
+    std::shared_ptr<TFile> outputFile(new TFile("output.root", "RECREATE"));
+
+    // Create a smart pointer for the TTree
+    std::shared_ptr<TTree> tree(new TTree("tree", "ParticleInfo Tree"));
+
+    // Create variables to hold the values of ParticleInfo properties
+    double momentum;
+    double mass;
+    double energy;
+    float refractiveIndex;
+    double ckov;
+
+    // Set the branch addresses for the TTree
+    tree->Branch("momentum", &momentum);
+    tree->Branch("mass", &mass);
+    tree->Branch("energy", &energy);
+    tree->Branch("refractiveIndex", &refractiveIndex);
+    tree->Branch("ckov", &ckov);
+
+    // Loop over the ParticleInfo objects and fill the TTree
+    for (const auto& particle : particleVector) {
+        momentum = particle.momentum;
+        mass = particle.mass;
+        energy = particle.energy;
+        refractiveIndex = particle.refractiveIndex;
+        ckov = particle.ckov;
+
+        tree->Fill();
+    }
+
+    // Write the TTree to the TFile
+    outputFile->cd();
+    tree->Write();
+
+    return outputFile;
 }
