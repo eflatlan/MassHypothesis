@@ -233,40 +233,6 @@ void testRandomMomentum(int numObjects = 10)
   // save object
   
   saveParticleInfoToROOT(particleVector);
-
-
-  //map->SaveAs("map.root");
-  //saveDataInst();
-  //TH2F *hClusterMap = new TH2F("Cluster Map", "Cluster Map; x [cm]; y [cm]",1000,-10.,10.,1000,-10.,10.);
-
-  /*
-  // create random momentum (model has this information):
-  auto momentum = randomMomentum();
-  pActual = momentum; 
-
-  // the actual mass (model is blind to this):
-  auto mass = randomMass();
-  massActual = mass;
-
-  // "random" refractive index (known to model)
-  auto photonEnergy = randomEnergy();
-  auto n = GetFreonIndexOfRefraction(photonEnergy);
-  
-  // create the ckovAngles from the mass hypotheses:
-  auto ckovAngles = calcCherenkovHyp(momentum, n);
-  ckovMassHyp = ckovAngles;
-  
-
-  // here the ckov is populated, should be adjusted to get random values:
-  ckovActual = calcCkovFromMass(momentum, n, mass); 
-  
-
-  //  populate the map with the noise and pseudo-randomly populated photons (radially [-pi..pi] and normally distributed [mu = ckovAngle, sigma = ang-res])
-  auto map = backgroundStudy(ckovActual, 0.01);
-  // get the corresponding map with a given ckov angle and occupancy
-
-  //calcCherenkovHyp(1.5, 1.289);
-  */ 
 }
 
 
@@ -401,26 +367,7 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
 	
  //Printf("Hough Window size = %f", Hwidth);
  
- /*auto ckovAnglePredicted = houghResponse(photonCandidates,  Hwidth);
-
-
-
-
- for(double d = 0.1; d < 0.4; d+= 0.05){
-   double rmin = getRadiusFromCkov(d+0.001*Hwidth/2); // R in photon-map
-   double rmax = getRadiusFromCkov(d-0.001*Hwidth/2); // R in photon-map
-   //Printf("d%f Rmin%f, Rmax%f", d, rmin, rmax);
- }*/ 
-
- // double rMax = getRadiusFromCkov(ckovTrackOut+0.001*Hwidth/2); // R in photon-map
- // double rMin = getRadiusFromCkov(ckovTrackOut-0.001*Hwidth/2); // R in photon-map
- 
- /*TFile *outFile = TFile::Open("background.root","RECREATE");
- 
- outFile->WriteObject(hThetaRing,"hThetaRing");
- 
- outFile->Write();
- outFile->Close();*/
+ /*auto ckovAnglePredicted = houghResponse(photonCandidates,  Hwidth); */
 
  return hSignalAndNoiseMap;
  
@@ -917,9 +864,11 @@ void saveDataInst()
 }
 
 
+
+// save TH2F* in own TTree since it caused segmentation fault when writing to same TTree as the other elements
 std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& particleVector) {
     // Create a smart pointer for the TFile
-    std::shared_ptr<TFile> outputFile(new TFile("output.root", "RECREATE"));
+    std::shared_ptr<TFile> outputFile(new TFile("outputFile.root", "RECREATE"));
 
     // Create a smart pointer for the TTree
     std::shared_ptr<TTree> tree(new TTree("tree", "ParticleInfo Tree"));
@@ -930,11 +879,9 @@ std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& p
     double energy;
     float refractiveIndex;
     double ckov;
-    //TH2F* map; gives segmentation fault
 
     // Set the branch addresses for the TTree
     tree->Branch("momentum", &momentum);
-    //tree->Branch("map", &map);
     tree->Branch("mass", &mass);
     tree->Branch("energy", &energy);
     tree->Branch("refractiveIndex", &refractiveIndex);
@@ -947,8 +894,13 @@ std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& p
         energy = particle.energy;
         refractiveIndex = particle.refractiveIndex;
         ckov = particle.ckov;
-	//map = particle.map;
+
         tree->Fill();
+
+        // Ensure the map is not a nullptr before writing it to the file
+        if (particle.map) {
+            particle.map->Write(); // This will write the TH2F* to the file
+        }
     }
 
     // Write the TTree to the TFile

@@ -4,8 +4,19 @@
 #include <algorithm>
 #include <chrono>
 
+
 class RandomValues {
 private:
+
+	static constexpr double nm2eV = 1239.842609;
+	const double mass_Pion = 0.1396, mass_Kaon = 0.4937, mass_Proton = 0.938; // masses in
+	std::array<double, 3> masses = {mass_Pion, mass_Kaon, mass_Proton};
+
+	static constexpr double arrWaveLenDefault[30] = {
+	  162, 164, 166, 168, 170, 172, 174, 176, 178, 180,
+	  182, 184, 186, 188, 190, 192, 194, 196, 198, 200,
+	  202, 204, 206, 208, 210, 212, 214, 216, 218, 220};
+
     std::random_device rd;
     std::mt19937 gen;
     std::uniform_int_distribution<int> massDistribution;
