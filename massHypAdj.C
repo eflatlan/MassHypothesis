@@ -190,17 +190,26 @@ void testRandomMomentum()
 
   // here the ckov is populated, should be adjusted to get random values:
   ckovActual = calcCkovFromMass(momentum, n, mass); 
-  backgroundStudy(Int_t NumberOfEvents, Int_t NumberOfClusters, double Hwidth, double occupancy = 0.03)
+
+
+  //  populate the map with the noise and pseudo-randomly populated photons (radially [-pi..pi] and normally distributed [mu = ckovAngle, sigma = ang-res])
+  auto map = backgroundStudy(ckovActual, 0.01);
+
+
+
   // get the corresponding map with a given ckov angle and occupancy
 
   //calcCherenkovHyp(1.5, 1.289);
 
 }
 
-TH2F* backgroundStudy(Int_t NumberOfEvents, Int_t NumberOfClusters, double Hwidth, double occupancy = 0.03)   
+
+
+
+TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)   
 {
 
-
+  Int_t NumberOfEvents = 1; Int_t NumberOfClusters = 13; double Hwidth = 15.;
   testRandomMomentum();
   gStyle->SetOptStat("ei");
 
@@ -226,24 +235,8 @@ TH2F* backgroundStudy(Int_t NumberOfEvents, Int_t NumberOfClusters, double Hwidt
 
   setStyle();
 
-
-
-  TH2F *hClusterMap = new TH2F("Cluster Map", "Cluster Map; x [cm]; y [cm]",1000,-10.,10.,1000,-10.,10.);
-
-
   TH2F *hSignalAndNoiseMap = new TH2F("Signal and Noise ", "Signal and Noise ; x [cm]; y [cm]",1000,-25.,25.,1000,-25.,25.);
 
-  TH2F *hSignalAndNoiseMap2 = new TH2F("Signal and Noise 2", "Signal and Noise 2; x [cm]; y [cm]",1000,-10.,10.,1000,-10.,10.);
-
-
-  TH2F *hphotonMap = new TH2F("Photon Map","Photon Map; x [cm]; y [cm]",1000,-10.,10.,1000,-10.,10.);
-
-  TH2F *hphotonMap2 = new TH2F("Photon Map2","Photon Map2; x [cm]; y [cm]",1000,-25.,25.,1000,-25.,25.);
-
-
-  TH2F *signalMap = new TH2F("Hit Map","Hit Map; x [cm]; y [cm]",1000,-7.,7.,1000,-7.,8.);
-  TH2F *noiseMap = new TH2F("noiseHitMap","noiseHitMap; x [cm]; y [cm]",1000,-7.,7.,1000,-7.,8.);
- 
    
   float Deltax = (RadiatorWidth+QuartzWindowWidth+CH4GapWidth-EmissionLenght)*TMath::Tan(ThetaP)*TMath::Cos(PhiP);
   float Deltay = (RadiatorWidth+QuartzWindowWidth+CH4GapWidth-EmissionLenght)*TMath::Tan(ThetaP)*TMath::Sin(PhiP);
@@ -278,10 +271,6 @@ TH2F* backgroundStudy(Int_t NumberOfEvents, Int_t NumberOfClusters, double Hwidt
       
       Xcen[n1] = 60*(1 - 2*gRandom->Rndm(n1));
       Ycen[n1] = 60*(1 - 2*gRandom->Rndm(n1));
-      hphotonMap->Fill(Xcen[n1], Ycen[n1]);
-      hphotonMap2->Fill(Xcen[n1], Ycen[n1]);
-
-
 
       noiseMap->Fill(Xcen[n1], Ycen[n1]);
       hSignalAndNoiseMap->Fill(Xcen[n1], Ycen[n1]);
@@ -476,19 +465,11 @@ TH2F* backgroundStudy(Int_t NumberOfEvents, Int_t NumberOfClusters, double Hwidt
  TRandom2* rnd = new TRandom2(1);
  rnd->SetSeed(0);
 
- //const double ckovAngleMean = 0.4+0.25*rnd->Gaus(0.5, 0.25);
- //ckovActual pActual massActual
-  
- //ckovMassHyp should apply constraints!
- meanCherenkovAngle = ckovActual;
- auto ckovAngleMean = meanCherenkovAngle;
- Printf("ckovAngleMean Generated %f", ckovActual);
 
 
  for(Int_t i=0; i < numberOfCkovPhotons; i++) {
    
 
-   // get ckov angle instead from the random
    double ckovAngle = rnd->Gaus(ckovAngleMean, 0.012);		    // random CkovAngle, with 0.012 std-dev
    
 

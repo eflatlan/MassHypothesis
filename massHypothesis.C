@@ -118,6 +118,18 @@ double randomMomentum()
   return 1+4*rndInt->Gaus(0.5, 0.25);
 }
 
+
+// create a number of random particles 
+double[] randomParticles(int numParticles)
+{
+  DataSaver dataSaver(Form("RandomParticles%3d.root",numParticles));
+
+  double[] randomMomentum = 
+
+
+
+}
+
 TH2F* tHistMass = new TH2F("test", "test; Momentum (GeV/c); Cherenkov Angle, #theta_{ch} (rad)", 5000, 0., 5., 800, 0., 0.8);
 TCanvas *tCkov = new TCanvas("ckov","ckov",800,800);  
 void testHyp()
@@ -130,7 +142,7 @@ void testHyp()
 
     
     auto photonEnergy = randomEnergy();
-    auto n = GetFreonIndexOfRefraction(photonEnergy);
+    auto n = GetFreonIndexOfRefraction(photonEnergy); // refractive index
     Printf("P =  %f  || n = %f", p, n);
     auto ckovAngles = calcCherenkovHyp(p, n);
     for(auto& ckovAngle:ckovAngles){
