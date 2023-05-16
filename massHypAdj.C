@@ -20,7 +20,7 @@
 #include <TFile.h>
 #include <TStyle.h>
 
-
+#include "SaveData.cpp"
 
 #include <Math/Vector3D.h>
 #include <Math/Vector2D.h>
@@ -35,6 +35,15 @@
 #include "Math/GenVector/RotationX.h"
 #include "Math/GenVector/RotationY.h"
 #include "Math/GenVector/RotationZ.h"
+
+
+/*
+struct DataInfo {
+    double momentum;
+    int typeOfParticle;
+    double refractiveIndex;
+    double pads[10][10];
+}; */
 
 
 double arrW[750]= {0.};
@@ -85,7 +94,7 @@ const double refIndexQuartz = GetQuartzIndexOfRefraction(defaultPhotonEnergy);
 const double  refIndexCH4 = 1.00; 
 
 
-
+TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03);
 
 const double CH4GapWidth = 8;
 const double  RadiatorWidth = 1.;
@@ -120,15 +129,13 @@ double randomMomentum()
 
 
 // create a number of random particles 
-double[] randomParticles(int numParticles)
+/*double[] randomParticles(int numParticles)
 {
   DataSaver dataSaver(Form("RandomParticles%3d.root",numParticles));
 
   double[] randomMomentum = 
 
-
-
-}
+}*/
 
 TH2F* tHistMass = new TH2F("test", "test; Momentum (GeV/c); Cherenkov Angle, #theta_{ch} (rad)", 5000, 0., 5., 800, 0., 0.8);
 TCanvas *tCkov = new TCanvas("ckov","ckov",800,800);  
@@ -209,6 +216,8 @@ void testRandomMomentum()
 TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)   
 {
 
+  auto ckovAngle = ckovActual;
+
   Int_t NumberOfEvents = 1; Int_t NumberOfClusters = 13; double Hwidth = 15.;
   testRandomMomentum();
   gStyle->SetOptStat("ei");
@@ -272,9 +281,9 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
       Xcen[n1] = 60*(1 - 2*gRandom->Rndm(n1));
       Ycen[n1] = 60*(1 - 2*gRandom->Rndm(n1));
 
-      noiseMap->Fill(Xcen[n1], Ycen[n1]);
+      //noiseMap->Fill(Xcen[n1], Ycen[n1]);
       hSignalAndNoiseMap->Fill(Xcen[n1], Ycen[n1]);
-      hSignalAndNoiseMap2->Fill(Xcen[n1], Ycen[n1]);
+      //hSignalAndNoiseMap2->Fill(Xcen[n1], Ycen[n1]);
 
 
     // ef: comment fra her?
@@ -424,7 +433,7 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
 	      
 //    }
 	  
-  Int_t LocPos = TMath::LocMax(700,HCS);
+  //Int_t LocPos = TMath::LocMax(700,HCS);
 	  
   Int_t NphotTot = 0;
   float MeanTot = 0;
@@ -470,7 +479,7 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
  for(Int_t i=0; i < numberOfCkovPhotons; i++) {
    
 
-   double ckovAngle = rnd->Gaus(ckovAngleMean, 0.012);		    // random CkovAngle, with 0.012 std-dev
+   double ckovAngle = rnd->Gaus(ckovAngle, 0.012);		    // random CkovAngle, with 0.012 std-dev
    
 
 
@@ -506,12 +515,12 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
  
  auto ckovAnglePredicted = houghResponse(photonCandidates,  Hwidth);
 
- TCanvas *signalNoiseCanvas = new TCanvas("Signal and Noise Hit Map","Signal and Noise Hit Map",800,800);  
- signalNoiseCanvas->Divide(2,1);
- signalNoiseCanvas->cd(1);
- signalMap->Draw();
- signalNoiseCanvas->cd(2);
- noiseMap->Draw();
+ //TCanvas *signalNoiseCanvas = new TCanvas("Signal and Noise Hit Map","Signal and Noise Hit Map",800,800);  
+ //signalNoiseCanvas->Divide(2,1);
+ //signalNoiseCanvas->cd(1);
+ //signalMap->Draw();
+ //signalNoiseCanvas->cd(2);
+ //noiseMap->Draw();
 
 
 
@@ -696,12 +705,14 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
  } */
 
  
- TFile *outFile = TFile::Open("background.root","RECREATE");
+ /*TFile *outFile = TFile::Open("background.root","RECREATE");
  
  outFile->WriteObject(hThetaRing,"hThetaRing");
  
  outFile->Write();
- outFile->Close();
+ outFile->Close();*/
+
+ return hSignalAndNoiseMap;
  
 }
 //**********************************************************************************************************************************************************************************************************
@@ -1146,7 +1157,9 @@ void setStyle()
 
 void saveDataInst()
 {
-  std::vector<Data> dataVector(100);  // Assuming you have a vector of Data
+
+  //std::vector<int> dataVector(100);  // Assuming you have a vector of Data	
+  std::vector<DataInfo> dataVector(100);  // Assuming you have a vector of Data
 
     // Fill the vector with some data
     // In a real case, you would likely fill this from your actual data source

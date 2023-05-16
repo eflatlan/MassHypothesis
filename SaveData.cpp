@@ -3,7 +3,7 @@
 #include "TFile.h"
 #include "TTree.h"
 
-struct Data {
+struct DataInfo {
     double momentum;
     int typeOfParticle;
     double refractiveIndex;
@@ -14,7 +14,7 @@ class DataSaver {
 private:
     std::unique_ptr<TFile> file;
     std::unique_ptr<TTree> tree;
-    Data data;
+    DataInfo data;
 
 public:
     DataSaver(const std::string& filename) {
@@ -31,7 +31,7 @@ public:
         tree->Branch("Pads", &data.pads, "pads[10][10]/D");
     }
 
-    void fillData(const std::vector<Data>& dataVector) {
+    void fillData(const std::vector<DataInfo>& dataVector) {
         // Fill tree with data from the vector
         for (const auto& item : dataVector) {
             data = item;
