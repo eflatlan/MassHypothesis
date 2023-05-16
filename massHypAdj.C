@@ -170,6 +170,8 @@ void saveDataInst();
 void testRandomMomentum()
 {  
 
+ std::vector<RandomValues> randomObjects(numObjects);
+
 //TH2F *hClusterMap = new TH2F("Cluster Map", "Cluster Map; x [cm]; y [cm]",1000,-10.,10.,1000,-10.,10.);
   rndInt->SetSeed(0);
 
@@ -286,178 +288,13 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
       //hSignalAndNoiseMap2->Fill(Xcen[n1], Ycen[n1]);
 
 
-    // ef: comment fra her?
-   
-//      Xcen[n1] = 130*gRandom->Rndm(n1); Ycen[n1] = 130*gRandom->Rndm(n1); 
+     
       
-//       TVector3 v2(Xcen[n1]-Xpi-EmissionLenght*TMath::Tan(ThetaP)*TMath::Cos(PhiP),Ycen[n1]-Ypi-EmissionLenght*TMath::Tan(ThetaP)*TMath::Sin(PhiP),RadiatorWidth+QuartzWindowWidth+CH4GapWidth-EmissionLenght); 
-      
-//       PhiF = v2.Phi();     
-
-       
-      
-//       ThetaLimite = TMath::ASin(CH4IndexOfRefraction/QuartzIndexOfRefraction);
-      
-//       double ThetaF0 = TMath::ASin(QuartzIndexOfRefraction/FreonIndexOfRefraction*TMath::Sin(ThetaLimite))-0.00001;
-
-
-      
-//     //  Printf("ThetaF0 = %f",ThetaF0*TMath::RadToDeg());
-	      
-//       double ThetaF01 = TMath::ASin((FreonIndexOfRefraction/QuartzIndexOfRefraction)*(TMath::Sin(ThetaF0)));      
-      
-//       double ThetaF02 = TMath::ASin((QuartzIndexOfRefraction/CH4IndexOfRefraction)*(TMath::Sin(ThetaF01)));
-	      
-//       float X01 = EmissionLenght*TMath::Tan(ThetaP)*TMath::Cos(PhiP);
-	      
-//       float Y01 =  EmissionLenght*TMath::Tan(ThetaP)*TMath::Sin(PhiP);
-	      
-//       float X02 = (RadiatorWidth - EmissionLenght)*TMath::Tan(ThetaF0)*TMath::Cos(PhiF)+QuartzWindowWidth*TMath::Tan(ThetaF01)*TMath::Cos(PhiF)+CH4GapWidth*TMath::Tan(ThetaF02)*TMath::Cos(PhiF);
-	      
-//       float Y02 = (RadiatorWidth - EmissionLenght)*TMath::Tan(ThetaF0)*TMath::Sin(PhiF) + QuartzWindowWidth*TMath::Tan(ThetaF01)*TMath::Sin(PhiF) + CH4GapWidth*TMath::Tan(ThetaF02)*TMath::Sin(PhiF);  
-	  
-//       float X0 = X01 + X02;
-//       float Y0 = Y01 + Y02;
-	      
-//       double ThetaMin = 0;
-// //      double ThetaMax = 0.75+ThetaP;
-//       double ThetaMax = ThetaF0;
-	      
-//       Xf = 999;
-//       Yf = 999;
-      
-//       Int_t nWhile = 0;
-      
-//       while(TMath::Sqrt((Xf-Xcen[n1]+Xpi)*(Xf-Xcen[n1]+Xpi)+(Yf-Ycen[n1]+Ypi)*(Yf-Ycen[n1]+Ypi))>0.0001)
-		
-// 	{ 
-//           nWhile++;
-          
-// 	  ThetaF = (double) (0.5*(ThetaMax - ThetaMin) + ThetaMin);
-	  
-// 	  ThetaF1 = TMath::ASin((FreonIndexOfRefraction/QuartzIndexOfRefraction)*(TMath::Sin(ThetaF)));     
-	  
-// 	  ThetaF2 = TMath::ASin((QuartzIndexOfRefraction/CH4IndexOfRefraction)*(TMath::Sin(ThetaF1)));
-	  
-// 	  Xf1 = EmissionLenght*TMath::Tan(ThetaP)*TMath::Cos(PhiP);
-		  
-// 	  Yf1 =  EmissionLenght*TMath::Tan(ThetaP)*TMath::Sin(PhiP);
-	  
-// 	  Xf2 = (RadiatorWidth - EmissionLenght)*TMath::Tan(ThetaF)*TMath::Cos(PhiF)+QuartzWindowWidth*TMath::Tan(ThetaF1)*TMath::Cos(PhiF)+CH4GapWidth*TMath::Tan(ThetaF2)*TMath::Cos(PhiF);
-	  
-		  
-// 	  Yf2 = (RadiatorWidth - EmissionLenght)*TMath::Tan(ThetaF)*TMath::Sin(PhiF) + QuartzWindowWidth*TMath::Tan(ThetaF1)*TMath::Sin(PhiF) + CH4GapWidth*TMath::Tan(ThetaF2)*TMath::Sin(PhiF);  
-		  
-// 	  Xf = Xf1 + Xf2;
-// 	  Yf = Yf1 + Yf2;
-// 	  //Printf("Positions Xf1 %f Yf1 %f Xf2 %f Yf2 %f" , Xf1, Yf1, Xf2, Yf2);
-		  
-
-
-// 	  if(TMath::Sqrt((Xf-X0)*(Xf-X0)+(Yf-Y0)*(Yf-Y0))>TMath::Sqrt((Xcen[n1]-Xpi-X0)*(Xcen[n1]-Xpi-X0)+(Ycen[n1]-Ypi-Y0)*(Ycen[n1]-Ypi-Y0)))
-		    
-// 	    {
-// 	      ThetaMin = ThetaF;
-// 	    }
-		  
-// 	  else 
-		    
-// 	    {
-// 	      ThetaMax = ThetaF;   
-// 	    }  
-            
-//             if(nWhile>30) break;
-            
-// 	} // while 
-        
-	      
-    //   TVector3 vP((TMath::Sin(ThetaP))*(TMath::Cos(PhiP)),(TMath::Sin(ThetaP))*(TMath::Sin(PhiP)),(TMath::Cos(ThetaP)));
-    //   TVector3 vz(0.,0.,1.);
-	      
-    //   TVector3 v1 = vP.Cross(vz);
-	      
-    //   TVector3 vF((TMath::Sin(ThetaF))*(TMath::Cos(PhiF)),(TMath::Sin(ThetaF))*(TMath::Sin(PhiF)),(TMath::Cos(ThetaF)));
-      
-    //   if(ThetaP==0)
-	// {	      
-	//   ThetaCherenkov[n1] = ThetaF;		  
-	//   PhiCherenkov[n1] = PhiF;	      
-	// }	  
-    //   else		
-	// {
-	//   vF.Rotate(ThetaP,v1);
-	  
-	//   ThetaCherenkov[n1] = vF.Theta();
-	//   PhiCherenkov[n1] = vF.Phi();
-	// }
-      
-    //   DegPhiCherenkov[n1] = 180*PhiCherenkov[n1]/(TMath::Pi());
-
-    //   if(DegPhiCherenkov[n1]<0) DegPhiCherenkov[n1]+=360;	      
-
-    //   TVector2 v5(Xcen[n1]-Xp,Ycen[n1]-Yp);
-      
-    //   //double Phi = v5.Phi();
-      
-    //   //float DegPhi = 180*Phi/TMath::Pi(); 
-      
-    //   hTheta->Fill(ThetaCherenkov[n1]);
-    //   // add background Photon to Candidates
-    //   photonCandidates.emplace_back(ThetaCherenkov[n1]);
-	      	      
-    //   //if(k1==2233) cout << " ThetaCherenkov " <<ThetaCherenkov[n1] <<"   PhiCherenkov = "<<DegPhiCherenkov[n1]<<"  event number = "<<k1<< endl;
-
-    //   Int_t dstep = (Int_t)DegPhiCherenkov[n1]/20;
-    //   if(dstep==18) dstep = 0;
-    //   if(dstep<0 || dstep>18) continue;	      
-      
-   }//clusters loop 	  
-  
-//   Int_t HCS[700] = {0x0};
-	  
-//   for(Int_t k2=0;k2<700;k2++)
-//     {
-      
-//       HCS[k2] = 0;             
-//       Int_t NphotHough = 0;
-      
-//     //   for(Int_t p=0;p<NumberOfClusters;p++)
-// 	// {
-		  
-// 	//   if(ThetaCherenkov[p]>(0.001*k2) && ThetaCherenkov[p]<(0.001*Hwidth+0.001*k2)) NphotHough++;
-// 	// }
-	      
-//       HCS[k2] = NphotHough;
-	      
-//       NHough->Fill(0.001*k2+0.001/2.,(float)NphotHough);
-	      
-//    }
-	  
-  //Int_t LocPos = TMath::LocMax(700,HCS);
+   }
 	  
   Int_t NphotTot = 0;
   float MeanTot = 0;
-  
-//   for(Int_t p=0;p<NumberOfClusters;p++)
-//     {
-//       if(ThetaCherenkov[p]>(0.001*LocPos) && ThetaCherenkov[p]<(Hwidth+0.001*LocPos)) 
-// 	{
-// 	  ThetaHough->Fill(ThetaCherenkov[p]);
-		  
-// 	  NphotTot++;
-// 	  MeanTot+=ThetaCherenkov[p];		 
-// 	  // 	  ThetaPhoton[NphotTot-1]=ThetaCherenkov[p];
-// 	}
-//     }
-	    
-//    float RingThetaCherenkov = MeanTot/(float)NphotTot;
-
-//    NPhoton->Fill(NphotTot);
-   
-//    if(NphotTot<3) continue;
-   
-//    hThetaRing->Fill(RingThetaCherenkov); // gjor denne paa weighted m signal
-        
+     
  }
 
 
@@ -515,165 +352,8 @@ TH2F* backgroundStudy(double ckovActual = 0.5, double occupancy = 0.03)
    //Printf("d%f Rmin%f, Rmax%f", d, rmin, rmax);
  }
 
-
-
  double rMax = getRadiusFromCkov(ckovTrackOut+0.001*Hwidth/2); // R in photon-map
  double rMin = getRadiusFromCkov(ckovTrackOut-0.001*Hwidth/2); // R in photon-map
-//  TEllipse* telMin = new TEllipse(0., 0., rMin);
-//  TEllipse* telMax = new TEllipse(0., 0., rMax);
-
-//  TArc* arcMin = new TArc(0., 0., rMin);
-//  TArc* arcMax = new TArc(0., 0., rMax);
-
-//  telMin->SetLineColor(kGreen); telMax->SetLineColor(kGreen);
- 
-
-//  telMin->SetFillStyle(0);telMax->SetFillStyle(0);
-//  telMin->SetLineWidth(2);telMax->SetLineWidth(2);
-
-
-//   auto up1 = getMaxInRange(hThetaClone, ckovTrackOut, Hwidth);
-//   auto up2 = getMaxInRange(hThetaCh, ckovTrackOut, Hwidth);
-//   auto up = std::max(up1, up2);
-
-//  TBox* box2 = new TBox(ckovTrackOut-(Hwidth/2)*0.001,0.,ckovTrackOut+(Hwidth/2)*0.001,up);
-//  box2->SetLineColor(kGreen);
-//  box2->SetFillStyle(0);  
-//  box2->SetLineWidth(2);  
-  
-
-
-
-//  noiseMap->GetXaxis()->SetRangeUser(-7, 7);
-//  noiseMap->GetYaxis()->SetRangeUser(-7, 8); 
-
-//  signalMap->GetXaxis()->SetRangeUser(-7, 7);
-//  signalMap->GetYaxis()->SetRangeUser(-7, 8);
-
-//  TLatex lt3;
-
-//  //lt3.DrawLatexNDC(.25, .8, Form("Background"));
-
-//  noiseMap->Draw();
-//  signalMap->Draw("Same"); 
-//  //lt3.DrawLatexNDC(.15, .85, Form("#color[4]{Cherenkov} Background"));
-//  lt3.DrawLatexNDC(.15, .85, Form("#color[4]{Cherenkov}"));
-//  lt3.DrawLatexNDC(.15, .8, Form("#color[2]{Background}"));
-
-
-
-
-//  telMin->Draw(); 
-//  telMax->Draw(); 
-//  auto pad = static_cast<TPad*>(signalPNoiseCanvas->cd(2));
-//  //hTheta2->SetLineColor(kRed);
-//  hThetaClone->SetLineColor(kRed);//hThetaCh
- 
-//  hThetaCh->SetLineColor(kBlue);
-//  hThetaCh->SetTitle("Cherenkov Photons And Background");
-//  hThetaCh->Draw();
-
-//  hThetaClone->Draw("Same");
-//  hThetaClone->SetTitle("Histogram");
-//  hThetaClone->GetXaxis()->SetRangeUser(0, 0.65);
-
-
-
-//   TLine* l = new TLine(ckovTrackOut-(Hwidth/2)*0.001, 0, ckovTrackOut-(Hwidth/2)*0.001, up);
-
-//   TLine* l2 = new TLine(ckovTrackOut+(Hwidth/2)*0.001, 0, ckovTrackOut+(Hwidth/2)*0.001, up);
-//   TLine* ll = new TLine(ckovTrackOut-(Hwidth/2)*0.001,  up, ckovTrackOut+(Hwidth/2)*0.001, up);
-//   l->SetLineColor(kGreen);  l2->SetLineColor(kGreen);ll->SetLineColor(kGreen);
-//   l->SetLineWidth(2);    l2->SetLineWidth(2);  ll->SetLineWidth(2); 
-
-//  l->Draw();  l2->Draw();ll->Draw();
-
-//  signalPNoiseCanvas->Show();
-
-
-
-
-//  TCanvas* ringCanvas = new TCanvas("Ring Cherenkov", "Ring Cherenkov", 800,800);
-//  ringCanvas->cd();
-//  hThetaRing->Draw();
-
-
-//   gStyle->SetOptStat("ei");
- /*
-  gStyle->SetOptStat("erm");
- {
-   TCanvas* testCanvas = new TCanvas("test" ,"test", 800,800);
-   testCanvas->Divide(2,1);
-   auto pad = static_cast<TPad *>(testCanvas->cd(1));
-   //pad->SetLogy(1);
-   hThetawg->Draw();
-
-   testCanvas->cd(2);
-   auto pad2 = static_cast<TPad *>(testCanvas->cd(2));
-   hphotonMap->Draw();
-
- } */ 
-
-
-/*
- {
-
-    TCanvas *houghCanvas = new TCanvas("Hough Canvas","Hough Canvas", 800, 800);
-  houghCanvas->Divide(2,2);
-
-   houghCanvas->cd(1);
-   hTheta->Draw();
-
-   houghCanvas->cd(2);
-   phots->Draw();
-
-   houghCanvas->cd(3);
-   photsw->Draw();
-
-   houghCanvas->cd(4);
-   resultw->Draw();
-
-   houghCanvas->Show();
-   houghCanvas->SaveAs("houghCanvas.png");
- }*/
-
-  
- /*
- {
-   TCanvas* testCanvas2 = new TCanvas("test2" ,"test2", 1600,800);
-   testCanvas2->Divide(2,2);
-   testCanvas2->cd(1);
-   auto hTheta_cl = static_cast<TH1F*>(hTheta->Clone());
-   hTheta_cl->Draw();
-   hTheta_cl->SetTitle("a) Background Angle Distribution;angle [rad]; counts/1 mrad");
-   hTheta_cl->SetTitleSize(hTheta_cl->GetTitleSize("x")*1.4, "xy");
-   hTheta_cl->SetLabelSize(hTheta_cl->GetLabelSize("x")*1.25, "xy");
-
-   auto pad2 = static_cast<TPad *>(testCanvas2->cd(2));
-   pad2->SetLogy(1);
-   auto hTheta2Log = static_cast<TH1F*>(hTheta2->Clone());
-   hTheta2Log->SetTitle("b) LogY Photon Cherenkov Angle Distribution;angle [rad]; counts/1 mrad");
-   hTheta2Log->SetTitleSize(hTheta_cl->GetTitleSize("x"), "xy");
-   hTheta2Log->SetLabelSize(hTheta_cl->GetLabelSize("x"), "xy");
-   hTheta2Log->Draw();
-
-
-   auto pad3 = static_cast<TPad *>(testCanvas2->cd(3));
-   //pad->SetLogy(1);
-   auto hTheta2_cl = static_cast<TH1F*>(hTheta2->Clone());
-   hTheta2_cl->SetTitleSize(hTheta_cl->GetTitleSize("x"), "xy");
-   hTheta2_cl->SetLabelSize(hTheta_cl->GetLabelSize("x"), "xy");
-   hTheta2_cl->Draw();
-   hTheta2_cl->SetTitle("c) Photon Cherenkov Angle Distribution;angle [rad]; counts/1 mrad");
-   auto pad4 = static_cast<TPad *>(testCanvas2->cd(4));
-   //pad->SetLogy(1);
-   auto hThetawg_cl = static_cast<TH1F*>(hThetawg->Clone());
-   hThetawg_cl->SetTitleSize(hTheta_cl->GetTitleSize("x"), "xy");
-   hThetawg_cl->SetLabelSize(hTheta_cl->GetLabelSize("x"), "xy");
-   hThetawg_cl->SetTitle("d) (Weighted) Track Photon Cherenkov Angle Distribution;angle [rad]; counts/1 mrad");
-   hThetawg_cl->Draw();
- } */
-
  
  /*TFile *outFile = TFile::Open("background.root","RECREATE");
  
@@ -1015,9 +695,6 @@ double getMaxInRange(TH1* th1, double mid, double width)
   }
   return max;
 }
-
-
-
 
 TH1* getMaxInRange(TH1* th1, double& up, double mid, double width)
 {
