@@ -49,6 +49,27 @@ static constexpr double nm2eV = 1239.842609;
 
 
 
+class ParticleInfo : public TObject {
+public:
+    // Your data members here
+    double momentum;
+    double mass;
+    double energy;
+    float refractiveIndex;
+    double ckov;
+    TH2F* map;
+
+    ParticleInfo() {
+        // Initialize your data members
+    }
+
+    virtual ~ParticleInfo() {}
+
+    ClassDef(ParticleInfo,1) // For ROOT dictionary
+};
+
+
+/*
 struct ParticleInfo {
     double momentum;
     double mass;
@@ -56,7 +77,7 @@ struct ParticleInfo {
     float refractiveIndex;
     double ckov;
     TH2F* map;
-};
+}; */ 
 
 
 double arrW[750]= {0.};
@@ -187,7 +208,7 @@ double massActual = 0.;
 double pActual = 0.;
 
 void saveDataInst();
-std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& particleVector);
+/*std::shared_ptr<TFile>*/void saveParticleInfoToROOT(const std::vector<ParticleInfo>& particleVector);
 
 void testRandomMomentum(int numObjects = 10)
 {  
@@ -864,7 +885,7 @@ void saveDataInst()
 }
 
 
-
+/*
 // save TH2F* in own TTree since it caused segmentation fault when writing to same TTree as the other elements
 std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& particleVector) {
     // Create a smart pointer for the TFile
@@ -908,4 +929,230 @@ std::shared_ptr<TFile> saveParticleInfoToROOT(const std::vector<ParticleInfo>& p
     tree->Write();
 
     return outputFile;
+}*/ 
+
+void saveParticleInfoToROOT2(const std::vector<ParticleInfo>& particleVector) {
+    // Create a new TFile
+    TFile* outputFile = new TFile("outputFile2.root", "RECREATE");
+
+    // Create a TTree
+    TTree* tree = new TTree("tree", "ParticleInfo Tree");
+
+    // Create a ParticleInfo pointer to hold the values
+    ParticleInfo* particleInfo = nullptr;
+
+    // Create a branch for ParticleInfo objects
+    tree->Branch("ParticleInfo", "ParticleInfo", &particleInfo, 32000, 0);
+
+    // Loop over the ParticleInfo objects and fill the TTree
+    for (const auto& particle : particleVector) {
+        // Delete the old object and create a new one with the current particle's values
+        delete particleInfo;
+        particleInfo = new ParticleInfo(particle);
+
+        // Fill the tree
+        tree->Fill();
+    }
+
+    // Write the TTree to the TFile
+    tree->Write();
+
+    // Close the TFile
+    outputFile->Close();
+
+    // Delete the last object created
+    delete particleInfo;
 }
+
+
+void readParticleInfoFromROOT() {
+    // Open the file
+    TFile* inputFile = new TFile("outputFile.root", "READ");
+
+    // Get the TTree
+    TTree* tree = (TTree*)inputFile->Get("tree");
+
+    // Variables to hold the values of ParticleInfo properties
+    double momentum;
+    double mass;
+    double energy;
+    float refractiveIndex;
+    double ckov;
+
+    // Set the branch addresses for the TTree
+    tree->SetBranchAddress("momentum", &momentum);
+    tree->SetBranchAddress("mass", &mass);
+    tree->SetBranchAddress("energy", &energy);
+    tree->SetBranchAddress("refractiveIndex", &refractiveIndex);
+    tree->SetBranchAddress("ckov", &ckov);
+
+    // Get number of entries in the TTree
+    Long64_t nEntries = tree->GetEntries();
+
+    // Loop over the entries in the TTree
+    for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
+        // Load the entry
+        tree->GetEntry(iEntry);
+
+        // Print the ParticleInfo object's values
+        std::cout << "ParticleInfo object " << iEntry << ":\n";
+        std::cout << "  momentum: " << momentum << "\n";
+        std::cout << "  mass: " << mass << "\n";
+        std::cout << "  energy: " << energy << "\n";
+        std::cout << "  refractiveIndex: " << refractiveIndex << "\n";
+        std::cout << "  ckov: " << ckov << "\n";
+
+        // Go to the "maps" directory
+        TDirectory* mapsDir = (TDirectory*)inputFile->Get("maps");
+        mapsDir->cd();
+
+        // Get the associated map
+        TString mapName = TString::Format("hist_%lld", iEntry);
+        TH2F* map = (TH2F*)gDirectory->Get(mapName);
+
+        if (map) {
+            // Print the number of entries in the map
+            std::cout << "  map entries: " << map->GetEntries() << "\n";
+        } else {
+            std::cout << "  map not found\n";
+        }
+
+        // Go back to the top directory
+        inputFile->cd();
+    }
+
+    // Close the file
+    inputFile->Close();
+}
+
+/*
+void readParticleInfoFromROOT2() {
+    // Open the file
+    TFile* inputFile = new TFile("outputFile2.root", "READ");
+
+    // Get the TTree
+    TTree* tree = (TTree*)inputFile->Get("tree");
+
+    // Create a ParticleInfo pointer
+    ParticleInfo* particleInfo = nullptr;
+
+    // Set the branch address
+    Printf("Setting ParticleInfo adress");
+    tree->SetBranchAddress("ParticleInfo", &particleInfo);
+
+    // Get number of entries in the TTree
+    Long64_t nEntries = tree->GetEntries();
+
+    Printf("Entering Loop");
+
+    // Loop over the entries in the TTree
+    for (Long64_t iEntry = 0; iEntry < nEntries; ++iEntry) {
+        // Load the entry
+
+
+        if(particleInfo) {
+            delete particleInfo;
+            particleInfo = nullptr;
+        }
+        std::cout << "tree->GetEntry(iEntry); " << iEntry << ":\n";
+        tree->GetEntry(iEntry);
+
+        if(particleInfo) {
+            std::cout << "ParticleInfo object " << iEntry << ":\n";
+            std::cout << "  momentum: " << particleInfo->momentum << "\n";
+            std::cout << "  mass: " << particleInfo->mass << "\n";
+            std::cout << "  energy: " << particleInfo->energy << "\n";
+            std::cout << "  refractiveIndex: " << particleInfo->refractiveIndex << "\n";
+            std::cout << "  ckov: " << particleInfo->ckov << "\n";
+        } else {
+            std::cout << " ParticleInfo object not found\n";
+        }
+
+        // Get the associated histogram
+        TString histName = TString::Format("hist_%lld", iEntry);
+        TH2F* hist = (TH2F*)inputFile->Get(histName);
+        if (hist) {
+            // Print the number of points in the histogram
+            std::cout << "  map points: " << hist->GetEntries() << "\n";
+        } else {
+            std::cout << "  map not found\n";
+        }
+    }
+
+    // Close the file
+    inputFile->Close();
+}*/ 
+
+
+
+void saveParticleInfoToROOT(const std::vector<ParticleInfo>& particleVector) {
+    // Create a new TFile
+    TFile* outputFile = new TFile("outputFile.root", "RECREATE");
+
+    // Create a TTree
+    TTree* tree = new TTree("tree", "ParticleInfo Tree");
+
+    // Create variables to hold the values of ParticleInfo properties
+    double momentum;
+    double mass;
+    double energy;
+    float refractiveIndex;
+    double ckov;
+
+    // Set the branch addresses for the TTree
+    tree->Branch("momentum", &momentum, "momentum/D");
+    tree->Branch("mass", &mass, "mass/D");
+    tree->Branch("energy", &energy, "energy/D");
+    tree->Branch("refractiveIndex", &refractiveIndex, "refractiveIndex/F");
+    tree->Branch("ckov", &ckov, "ckov/D");
+
+    // Create a directory to store the maps
+    TDirectory* mapsDir = outputFile->mkdir("maps");
+    mapsDir->cd();
+
+    // Counter for unique histogram names
+    int histCounter = 0;
+
+    // Loop over the ParticleInfo objects and fill the TTree
+    for (const auto& particle : particleVector) {
+        momentum = particle.momentum;
+        mass = particle.mass;
+        energy = particle.energy;
+        refractiveIndex = particle.refractiveIndex;
+        ckov = particle.ckov;
+	TCanvas* canvas = new TCanvas("canvas", "Map Canvas", 800, 800);
+        // Write each histogram to the maps directory with a unique name
+        TString histName = TString::Format("hist_%d", histCounter++);
+        TH2F* histCopy = new TH2F(*particle.map);
+        histCopy->SetName(histName);
+
+	// Draw the map on the canvas with a 1:1 aspect ratio
+	canvas->SetCanvasSize(800, 800);
+	canvas->SetFixedAspectRatio();
+        histCopy->Write();
+
+        tree->Fill();
+    }
+
+    // Go back to the top directory
+    outputFile->cd();
+
+    // Write the TTree to the TFile
+    tree->Write();
+
+    // Close the TFile
+    outputFile->Close();
+
+
+    // save by class: some problems
+    //saveParticleInfoToROOT2(particleVector);
+
+
+    // works good
+    Printf("\n\n Reading from file now...");
+    readParticleInfoFromROOT();
+}
+
+
+
+
