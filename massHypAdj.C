@@ -248,7 +248,7 @@ void testRandomMomentum(int numObjects = 10)
      particle.ckov = ckov;
      particle.map = map;  
      particleVector.emplace_back(particle);
-    map->SaveAs(Form("map%d.root", i));
+     //map->SaveAs(Form("map%d.root", i));
   }
 
   // save object
@@ -1120,17 +1120,16 @@ void saveParticleInfoToROOT(const std::vector<ParticleInfo>& particleVector) {
         energy = particle.energy;
         refractiveIndex = particle.refractiveIndex;
         ckov = particle.ckov;
-	TCanvas* canvas = new TCanvas("canvas", "Map Canvas", 800, 800);
+	//TCanvas* canvas = new TCanvas("canvas", "Map Canvas", 800, 800);
         // Write each histogram to the maps directory with a unique name
         TString histName = TString::Format("hist_%d", histCounter++);
         TH2F* histCopy = new TH2F(*particle.map);
         histCopy->SetName(histName);
 
 	// Draw the map on the canvas with a 1:1 aspect ratio
-	canvas->SetCanvasSize(800, 800);
-	canvas->SetFixedAspectRatio();
+	//canvas->SetCanvasSize(800, 800);
+	//canvas->SetFixedAspectRatio();
         histCopy->Write();
-
         tree->Fill();
     }
 
